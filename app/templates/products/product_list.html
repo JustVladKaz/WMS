@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📦 Product List</h2>
+{% if user.role == "admin" %}
+<div class="d-flex justify-content-end mb-3">
+    <a class="btn text-white d-flex align-items-center gap-2" style="background-color: #1655FC;" href="{% url 'product_create' %}">
+        <i class="bi bi-plus-lg"></i> New Product
+    </a>
+</div>
+{% endif %}
+<div class="row mb-3">
+    <div class="col-md-6 position-relative">
+        <input type="text" id="searchInput" class="form-control rounded-3 shadow-sm" placeholder="Search products...">
+        <div id="suggestionBox" class="position-absolute bg-white border rounded shadow-sm w-100 d-none"></div>
+    </div>
+    <div class="col-md-6">
+        <select id="stockFilter" class="form-select rounded-3 shadow-sm">
+            <option value="">All</option>
+            <option value="low">Low Stock (≤ 5)</option>
+            <option value="in_stock">In Stock</option>
+        </select>
+    </div>
+</div>
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th style="width: 10%;">Name</th>
+            <th style="width: 70%;">Description</th>
+            <th style="width: 5%;">Quantity</th>
+            <th style="width: 7%;">Price</th>
+            {% if user.role == "admin" %}
+                <th style="width: 8%;">Actions</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody id="productTable" class="table-light">
+        {% for product in products %}
+        <tr data-name="{{ product.name|lower }}" data-quantity="{{ product.quantity }}">
+            <td>{{ product.name }}</td>
+            <td>{{ product.description }}</td>
+            <td>{{ product.quantity }}</td>
+            <td>${{ product.price }}</td>
+            {% if user.role == "admin" %}
+                <td>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-warning btn-sm" href="{% url 'product_update' product.id %}">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a class="btn btn-danger btn-sm" href="{% url 'product_delete' product.id %}">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </div>
+                </td>
+            {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if user.role == 'admin' %}5{% else %}4{% endif %}" class="text-center text-muted">No products available.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let searchInput = document.getElementById("searchInput");
+        let suggestionBox = document.getElementById("suggestionBox");
+        let rows = document.querySelectorAll("#productTable tr");
+        searchInput.addEventListener("input", function() {
+            let searchValue = this.value.toLowerCase();
+            suggestionBox.innerHTML = "";
+            suggestionBox.classList.add("d-none");
+            if (searchValue.length > 0) {
+                let matches = [];
+                rows.forEach(row => {
+                    let productName = row.getAttribute("data-name");
+                    if (productName.includes(searchValue)) {
+                        matches.push(productName);}});
+                if (matches.length > 0) {
+                    matches = [...new Set(matches)];
+                    suggestionBox.classList.remove("d-none");
+                    matches.forEach(match => {
+                        let suggestion = document.createElement("div");
+                        suggestion.classList.add("p-2", "border-bottom");
+                        suggestion.style.cursor = "pointer";
+                        suggestion.textContent = match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        suggestion.addEventListener("click", function() {
+                            searchInput.value = match;
+                            filterProducts(match);
+                            suggestionBox.classList.add("d-none");});
+                        suggestionBox.appendChild(suggestion);});}}});
+        function filterProducts(searchValue) {
+            rows.forEach(row => {
+                row.style.display = "";});
+            rows.forEach(row => {
+                let name = row.getAttribute("data-name");
+                row.style.display = name.includes(searchValue.toLowerCase()) ? "" : "none";});}
+        document.getElementById("stockFilter").addEventListener("change", function() {
+            let filterValue = this.value;
+            rows.forEach(row => {
+                let quantity = parseInt(row.getAttribute("data-quantity"), 10);
+                row.style.display = "";
+                if (filterValue === "low" && quantity > 5) row.style.display = "none";
+                else if (filterValue === "in_stock" && quantity <= 0) row.style.display = "none";});});
+        document.addEventListener("click", function(event) {
+            if (!searchInput.contains(event.target) && !suggestionBox.contains(event.target)) {
+                suggestionBox.classList.add("d-none");}});});
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h2>{% if user.role == "admin" %} 📑 All Orders {% else %} 📑 My Orders {% endif %}</h2>
+    <div class="d-flex gap-3">
+        <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search orders...">
+        <select id="statusFilter" class="form-select w-auto">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="canceled">Canceled</option>
+        </select>
+    </div>
+</div>
+<table class="table table-striped" id="ordersTable">
+    <thead class="table-dark">
+        <tr>
+            <th>Product</th>
+            <th>Unit Price ($)</th>
+            <th>Quantity</th>
+            <th>Total Price ($)</th>
+            <th>Ordered By</th>
+            <th>Ordered At</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="orderTable" class="table-light">
+        {% for order in orders %}
+        <tr data-status="{{ order.status }}">
+            <td>{{ order.product.name }}</td>
+            <td>${{ order.product.price|floatformat:2 }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>${{ order.total_price|floatformat:2 }}</td>
+            <td>{{ order.ordered_by.username }}</td>
+            <td>{{ order.ordered_at }}</td>
+            <td>
+                <span class="badge 
+                    {% if order.status == 'pending' %} bg-warning 
+                    {% elif order.status == 'completed' %} bg-success 
+                    {% elif order.status == 'canceled' %} bg-danger {% endif %}">
+                    {{ order.get_status_display }}
+                </span>
+            </td>
+            <td>
+                {% if order.status == "pending" %}
+                    <form method="POST" action="{% url 'update_order_status' order.id %}" class="d-flex align-items-center gap-2">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm w-auto">
+                            <option value="pending" {% if order.status == "pending" %}selected{% endif %}>Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check-circle"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8" class="text-center text-muted">No orders found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>    
+</table>
+<script>
+    document.getElementById("statusFilter").addEventListener("change", function() {
+        let selectedStatus = this.value;
+        let rows = document.querySelectorAll("#orderTable tr");
+        rows.forEach(row => {
+            let rowStatus = row.getAttribute("data-status");
+            row.style.display = (selectedStatus === "" || rowStatus === selectedStatus) ? "" : "none";});});
+    
+    document.addEventListener("DOMContentLoaded", function () {
+        let searchInput = document.getElementById("searchInput");
+        let statusFilter = document.getElementById("statusFilter");
+        let rows = document.querySelectorAll("#orderTable tr");
+        function filterOrders() {
+            let searchValue = searchInput.value.toLowerCase();
+            let selectedStatus = statusFilter.value;
+            rows.forEach(row => {
+                let rowText = row.textContent.toLowerCase();
+                let rowStatus = row.getAttribute("data-status");
+                let matchesSearch = rowText.includes(searchValue);
+                let matchesStatus = (selectedStatus === "" || rowStatus === selectedStatus);
+                row.style.display = (matchesSearch && matchesStatus) ? "" : "none";});}
+        searchInput.addEventListener("input", filterOrders);
+        statusFilter.addEventListener("change", filterOrders);});
+    
+    function refreshOrders() {
+        fetch("{% url 'order_list' %}")
+        .then(response => response.text())
+        .then(data => {
+            let parser = new DOMParser();
+            let newDoc = parser.parseFromString(data, "text/html");
+            document.getElementById("ordersTable").innerHTML = newDoc.getElementById("ordersTable").innerHTML;
+        })
+        .catch(error => console.error("Error refreshing orders:", error));
+    }
+    setInterval(refreshOrders, 5000);
+</script>    
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card p-2 text-center shadow-sm">
+            <h6>Total Products 📦</h6>
+            <h3>{{ total_products }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-2 text-center shadow-sm">
+            <h6>Total Orders 📑</h6>
+            <h3>{{ total_orders }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-2 text-center shadow-sm">
+            <h6>Total Reports 📊</h6>
+            <h3>{{ total_reports }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-2 text-center shadow-sm">
+            <h6>Total Revenue 💰</h6>
+            <h3>${{ total_revenue }}</h3>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card p-2 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5>Top 5 Most Ordered Products</h5>
+                <select id="orderFilter" class="form-select form-select-sm w-auto">
+                    <option value="completed" {% if current_filter == "completed" %}selected{% endif %}>Completed Orders</option>
+                    <option value="all" {% if current_filter == "all" %}selected{% endif %}>All Orders</option>
+                </select>
+            </div>
+            <canvas id="topProductsChart" style="height: 280px;"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-2 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5>Orders Over Time</h5>
+                <select id="periodSelector" class="form-select form-select-sm w-auto">
+                    <option value="day" {% if current_period == "day" %}selected{% endif %}>Last 7 Days</option>
+                    <option value="week" {% if current_period == "week" %}selected{% endif %}>Last 4 Weeks</option>
+                    <option value="month" {% if current_period == "month" %}selected{% endif %}>Last 12 Months</option>
+                </select>
+            </div>
+            <canvas id="ordersOverTimeChart" style="height: 280px;"></canvas>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-2 text-center shadow-sm border-warning">
+            <h6 class="text-warning">⏳ Pending Orders</h6>
+            <h3 class="text-warning">{{ pending_orders }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-2 text-center shadow-sm border-danger">
+            <h6 class="text-danger">❌ Canceled Order Rate</h6>
+            <h3 class="text-danger">{{ canceled_order_rate|floatformat:2 }}%</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-2 text-center shadow-sm border-secondary">
+            <h6 class="text-secondary">⚠️ Low Stock Alerts</h6>
+            <h3 class="text-secondary">{{ low_stock_products }}</h3>
+        </div>
+    </div>
+</div>
+<script>
+    var productNames = JSON.parse('{{ product_names|escapejs }}');
+    var totalQuantities = JSON.parse('{{ total_quantities|escapejs }}');
+    var timeLabels = JSON.parse('{{ time_labels|escapejs }}');
+    var timeOrders = JSON.parse('{{ time_orders|escapejs }}');
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var ctx1 = document.getElementById('topProductsChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Total Quantity Ordered',
+                    data: totalQuantities,
+                    backgroundColor: '#1655FC'
+                }]},
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }}}}});
+        var ctx2 = document.getElementById('ordersOverTimeChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Orders',
+                    data: timeOrders,
+                    borderColor: '#1655FC',
+                    fill: false
+                }]},
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }}}}});
+        document.getElementById("orderFilter").addEventListener("change", function() {
+            let selectedFilter = this.value;
+            window.location.href = `?order_filter=${selectedFilter}`;
+        });
+        document.getElementById("periodSelector").addEventListener("change", function() {
+            let selectedPeriod = this.value;
+            window.location.href = `?period=${selectedPeriod}`;});});
+</script>
+{% endblock %}

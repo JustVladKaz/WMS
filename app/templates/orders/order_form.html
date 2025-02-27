@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">📑 {% if form.instance.pk %}Edit{% else %}Place{% endif %} Order</h2>
+<div class="container-fluid">
+    <form method="POST" class="p-4 border rounded shadow-sm bg-light">
+        {% csrf_token %}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Product</label>
+                <select id="productSelect" name="product" class="form-control rounded-3 shadow-sm" required>
+                    <option value="" disabled selected>-- Select Product --</option>
+                    {% for product in products %}
+                        <option value="{{ product.id }}" data-price="{{ product.price }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Quantity</label>
+                <input type="number" name="quantity" id="quantityInput" class="form-control rounded-3 shadow-sm" min="1" value="1" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Unit Price ($)</label>
+                <input type="text" id="unitPrice" class="form-control rounded-3 shadow-sm bg-light text-muted" readonly>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Total Price ($)</label>
+                <input type="text" id="totalPrice" class="form-control rounded-3 shadow-sm bg-light text-muted" readonly>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-3">
+            <a href="{% url 'employee_orders' %}" class="btn btn-danger px-4 py-2 rounded-3">Cancel</a>
+            <button type="submit" class="btn text-white px-4 py-2 rounded-3" style="background-color: #1655FC;">Save</button>
+        </div>
+    </form>
+</div>
+<script>
+    document.getElementById("productSelect").addEventListener("change", function() {
+        let selectedOption = this.options[this.selectedIndex];
+        let price = selectedOption.getAttribute("data-price");
+        document.getElementById("unitPrice").value = `$${price}`;
+        updateTotalPrice();});
+    document.getElementById("quantityInput").addEventListener("input", updateTotalPrice);
+    function updateTotalPrice() {
+        let price = parseFloat(document.getElementById("unitPrice").value.replace("$", "")) || 0;
+        let quantity = parseInt(document.getElementById("quantityInput").value) || 1;
+        let total = price * quantity;
+        document.getElementById("totalPrice").value = `$${total.toFixed(2)}`;}
+</script>
+{% endblock %}
