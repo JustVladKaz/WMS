@@ -1,1 +1,1 @@
-# WMS
+# Warehouse Management System | ISCT Cource Project
