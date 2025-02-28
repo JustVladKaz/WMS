@@ -1,6 +1,6 @@
 # Warehouse Management System (WMS)
 
-![Alt text](https://disk.yandex.ru/i/E_svmsBDo6o4nA)
+![Alt text](https://imgur.com/a/MSBclSN)
 
 ### Authors
 
