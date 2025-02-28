@@ -1,6 +1,7 @@
 # Warehouse Management System (WMS)
 
-![Alt text](![Uploading 123.png…]())
+![123](https://github.com/user-attachments/assets/c48a4c87-6278-47c1-ad2f-bb4eb3a40ae5)
+
 
 ### Authors
 
