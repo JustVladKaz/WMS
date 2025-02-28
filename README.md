@@ -5,7 +5,7 @@
 
 ### Authors
 
-- Khoja Rinas  
+- Khoujah Rinas
 - Kazarin Vladislav Alekseevich  
 - Mohammed Abdelhafiz Salem Abdelha
 
