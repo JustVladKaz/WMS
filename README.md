@@ -88,7 +88,7 @@ Follow these steps to set up the project locally:
 2. **Clone or Download the Project**  
    Either clone the repository or unzip the project folder:
    ```bash
-    git clone https://github.com/yourusername/WMS.git
+    git clone https://github.com/JustVladKaz/WMS.git
     cd WMS
 3. **Create and Activate a Virtual Environment**  
    Create a virtual environment:
